@@ -25,11 +25,11 @@ def read_csv(csv_datei):
         return None
 
 # CSV Format überprüfen
-def validate_csv_format(daten):
+def validate_csv_format(daten, mode):
     required_columns = []
-    if mode.get() == "Kennfeld":
+    if mode == "Kennfeld":
         required_columns = ['index', 'drehzahl', 'drehmoment']
-    elif mode.get() == "Stromwinkel":
+    elif mode == "Stromwinkel":
         required_columns = ['index', 'drehzahl', 'strom_effektiv', 'stromwinkel']
 
     missing_columns = [col for col in required_columns if col not in daten.columns]
@@ -44,7 +44,7 @@ def validate_csv_format(daten):
     return True, ""
 
 # Variable in SPS schreiben
-def write_SPS(variable, value_array, value_type):
+def write_SPS(variable, value_array, value_type, client):
     try:
         node_id = f'ns={namespace_index};s="{db_name}"."{variable}"'
         node = client.get_node(node_id)
@@ -80,23 +80,23 @@ def disconnect_from_server():
         messagebox.showerror("Fehler", f"Fehler beim Trennen vom OPC-UA Server: {e}")
 
 # CSV Datei hochladen und anzeigen
-def upload_csv():
+def upload_csv(tree, mode, filename_label):
     global daten, dateiname
     csv_datei = filedialog.askopenfilename(filetypes=[("CSV files", "*.csv")])
     if csv_datei:
         dateiname = csv_datei.split("/")[-1]
         daten = read_csv(csv_datei)
         if daten is not None:
-            valid, message = validate_csv_format(daten)
+            valid, message = validate_csv_format(daten, mode.get())
             if not valid:
                 messagebox.showerror("Fehler", message)
             else:
                 # Dateinamen Label aktualisieren
                 filename_label.config(text=f"Dateiname: {dateiname}")
-                display_data(daten)
+                display_data(daten, tree)
 
 # CSV-Daten in der Tabelle anzeigen
-def display_data(daten):
+def display_data(daten, tree):
     for row in tree.get_children():
         tree.delete(row)
 
@@ -110,7 +110,7 @@ def display_data(daten):
         tree.insert("", "end", values=list(row))
 
 # Daten an SPS senden
-def send_to_sps():
+def send_to_sps(mode, tree):
     global daten
     if daten is None:
         messagebox.showerror("Fehler", "Keine CSV-Daten zum Senden. Bitte laden Sie zuerst eine CSV-Datei hoch.")
@@ -130,9 +130,9 @@ def send_to_sps():
             drehzahl_array[:rows_to_copy] = daten['drehzahl'][:rows_to_copy].values
             drehmoment_array[:rows_to_copy] = daten['drehmoment'][:rows_to_copy].values
             
-            write_SPS("index", index_array, ua.VariantType.Int16)
-            write_SPS("drehzahl", drehzahl_array, ua.VariantType.Float)
-            write_SPS("drehmoment", drehmoment_array, ua.VariantType.Float)
+            write_SPS("index", index_array, ua.VariantType.Int16, client)
+            write_SPS("drehzahl", drehzahl_array, ua.VariantType.Float, client)
+            write_SPS("drehmoment", drehmoment_array, ua.VariantType.Float, client)
         
         elif mode.get() == "Stromwinkel":
             index_array = np.zeros(1000, dtype=np.int16)
@@ -146,10 +146,10 @@ def send_to_sps():
             strom_effektiv_array[:rows_to_copy] = daten['strom_effektiv'][:rows_to_copy].values
             stromwinkel_array[:rows_to_copy] = daten['stromwinkel'][:rows_to_copy].values
             
-            write_SPS("index", index_array, ua.VariantType.Int16)
-            write_SPS("drehzahl", drehzahl_array, ua.VariantType.Float)
-            write_SPS("Strom_Effektivwert", strom_effektiv_array, ua.VariantType.Float)
-            write_SPS("Stromwinkel", stromwinkel_array, ua.VariantType.Float)
+            write_SPS("index", index_array, ua.VariantType.Int16, client)
+            write_SPS("drehzahl", drehzahl_array, ua.VariantType.Float, client)
+            write_SPS("Strom_Effektivwert", strom_effektiv_array, ua.VariantType.Float, client)
+            write_SPS("Stromwinkel", stromwinkel_array, ua.VariantType.Float, client)
         
         messagebox.showinfo("Erfolg", "Daten erfolgreich an SPS gesendet")
 
@@ -160,68 +160,8 @@ def send_to_sps():
         # Verbindung trennen
         disconnect_from_server()
 
-# Daten manuell eingeben
-def enter_data_manually():
-    def on_submit():
-        try:
-            start_drehzahl = float(entry_start_drehzahl.get())
-            step_drehzahl = float(entry_step_drehzahl.get())
-            end_drehzahl = float(entry_end_drehzahl.get())
-            
-            start_drehmoment = float(entry_start_drehmoment.get())
-            step_drehmoment = float(entry_step_drehmoment.get())
-            end_drehmoment = float(entry_end_drehmoment.get())
-            
-            drehzahl_values = np.arange(start_drehzahl, end_drehzahl + step_drehzahl, step_drehzahl)
-            drehmoment_values = np.arange(start_drehmoment, end_drehmoment + step_drehmoment, step_drehmoment)
-            
-            data = [(i, dz, dm) for i, (dz, dm) in enumerate(np.array(np.meshgrid(drehzahl_values, drehmoment_values)).T.reshape(-1, 2))]
-            
-            global daten
-            daten = pd.DataFrame(data, columns=['index', 'drehzahl', 'drehmoment'])
-            
-            display_data(daten)
-            manual_entry_window.destroy()
-            messagebox.showinfo("Erfolg", "Daten erfolgreich manuell eingegeben")
-        except Exception as e:
-            messagebox.showerror("Fehler", f"Fehler bei der manuellen Dateneingabe: {e}")
-
-    # Fenster für die manuelle Eingabe
-    manual_entry_window = Toplevel(root)
-    manual_entry_window.title("Daten manuell eingeben")
-
-    # Drehzahl Eingabe
-    tk.Label(manual_entry_window, text="Anfangswert Drehzahl:").grid(row=0, column=0, padx=10, pady=5, sticky='e')
-    entry_start_drehzahl = tk.Entry(manual_entry_window)
-    entry_start_drehzahl.grid(row=0, column=1, padx=10, pady=5)
-    
-    tk.Label(manual_entry_window, text="Schrittweite Drehzahl:").grid(row=1, column=0, padx=10, pady=5, sticky='e')
-    entry_step_drehzahl = tk.Entry(manual_entry_window)
-    entry_step_drehzahl.grid(row=1, column=1, padx=10, pady=5)
-    
-    tk.Label(manual_entry_window, text="Endwert Drehzahl:").grid(row=2, column=0, padx=10, pady=5, sticky='e')
-    entry_end_drehzahl = tk.Entry(manual_entry_window)
-    entry_end_drehzahl.grid(row=2, column=1, padx=10, pady=5)
-    
-    # Drehmoment Eingabe
-    tk.Label(manual_entry_window, text="Anfangswert Drehmoment:").grid(row=3, column=0, padx=10, pady=5, sticky='e')
-    entry_start_drehmoment = tk.Entry(manual_entry_window)
-    entry_start_drehmoment.grid(row=3, column=1, padx=10, pady=5)
-    
-    tk.Label(manual_entry_window, text="Schrittweite Drehmoment:").grid(row=4, column=0, padx=10, pady=5, sticky='e')
-    entry_step_drehmoment = tk.Entry(manual_entry_window)
-    entry_step_drehmoment.grid(row=4, column=1, padx=10, pady=5)
-    
-    tk.Label(manual_entry_window, text="Endwert Drehmoment:").grid(row=5, column=0, padx=10, pady=5, sticky='e')
-    entry_end_drehmoment = tk.Entry(manual_entry_window)
-    entry_end_drehmoment.grid(row=5, column=1, padx=10, pady=5)
-    
-    # Bestätigungsbutton
-    btn_submit = tk.Button(manual_entry_window, text="Eingaben bestätigen", command=on_submit)
-    btn_submit.grid(row=6, column=0, columnspan=2, pady=10)
-
-# Hauptprogramm
-if __name__ == "__main__":
+# Hauptfunktion, die das GUI und die gesamte Logik startet
+def main():
     root = tk.Tk()
     root.title("CSV zu OPC-UA")
 
@@ -238,7 +178,7 @@ if __name__ == "__main__":
     tk.Radiobutton(mode_frame, text="Stromwinkel", variable=mode, value="Stromwinkel").pack(anchor='w')
 
     # CSV hochladen Button
-    btn_upload = tk.Button(main_frame, text="CSV Datei hochladen", command=upload_csv, width=30)
+    btn_upload = tk.Button(main_frame, text="CSV Datei hochladen", command=lambda: upload_csv(tree, mode, filename_label), width=30)
     btn_upload.pack(pady=10)
 
     # Dateiname Label
@@ -262,15 +202,7 @@ if __name__ == "__main__":
     tree.configure(xscrollcommand=hsb.set)
 
     # Daten senden Button
-    btn_send = tk.Button(main_frame, text="Daten an SPS senden", command=send_to_sps, width=30)
+    btn_send = tk.Button(main_frame, text="Daten an SPS senden", command=lambda: send_to_sps(mode, tree), width=30)
     btn_send.pack(pady=10)
-
-    # Manuelle Eingabe Button
-    btn_manual_entry = tk.Button(main_frame, text="Daten manuell eingeben", command=enter_data_manually, width=30)
-    btn_manual_entry.pack(pady=10)
-
-    # Beenden Button
-    btn_exit = tk.Button(main_frame, text="Beenden", command=root.quit, width=30)
-    btn_exit.pack(pady=10)
 
     root.mainloop()

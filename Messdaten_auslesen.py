@@ -144,7 +144,10 @@ class OPCUAGUI:
         else:
             messagebox.showwarning("No Data", "No data to save.")
 
-if __name__ == "__main__":
+def main():
     root = tk.Tk()
     app = OPCUAGUI(root)
     root.mainloop()
+
+if __name__ == "__main__":
+    main()
