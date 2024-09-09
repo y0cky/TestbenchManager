@@ -10,9 +10,9 @@ jobs:
         os: [ubuntu-latest, windows-latest, macos-latest]
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v3  # Node.js 20 wird zukünftig verwendet
 
-    # Install Tkinter dependencies for Linux
+    # Tkinter-Abhängigkeiten für Linux installieren
     - name: Install Tkinter dependencies (Linux only)
       if: runner.os == 'Linux'
       run: sudo apt-get install python3-tk -y
@@ -34,5 +34,5 @@ jobs:
     - name: Upload executable as artifact
       uses: actions/upload-artifact@v3
       with:
-        name: built-executable
+        name: built-executable-${{ matrix.os }}  # Dynamischer Name basierend auf dem OS
         path: ./dist/
