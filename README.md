@@ -5,7 +5,7 @@
 
 This project provides a graphical user interface (GUI) for managing the operation of a test bench used for electrical machine testing. It allows the user to create and upload operating points, perform tests, and save measurement data.
 
-The program communicates with a PLC which carries out the measurements. The appropriate PLC program can be found [here]https://github.com/y0cky/elek.MaschinenPr-fprog
+The program communicates with a PLC which carries out the measurements. The appropriate PLC program can be found [here](https://github.com/y0cky/elek.MaschinenPr-fprog)
 
 ## Table of Contents
 - [Overview](#overview)
