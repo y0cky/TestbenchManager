@@ -1,4 +1,4 @@
-# TestbenchManager GUI Application
+# TestbenchManager
 
 This project provides a graphical user interface (GUI) for managing the operation of a test bench used for electrical machine testing. It allows the user to create and upload operating points, perform tests, and save measurement data.
 
@@ -9,8 +9,6 @@ This project provides a graphical user interface (GUI) for managing the operatio
 - [Installation](#installation)
 - [Usage](#usage)
 - [Programs Description](#programs-description)
-- [Contributing](#contributing)
-- [License](#license)
 
 ## Overview
 
