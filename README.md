@@ -55,7 +55,7 @@ bash
 
     pip install pandas
 
-Usage
+## Usage
 
     Run the main.py file to launch the GUI:
 
@@ -70,8 +70,8 @@ Usage
 
     The application will automatically load default values from default_values.csv. If the file is missing, it will be created with default values upon the first run.
 
-Programs Description
-1. main.py
+## Programs Description
+### 1. main.py
 
 The main GUI that integrates all functionalities. It allows the user to:
 
@@ -80,14 +80,14 @@ The main GUI that integrates all functionalities. It allows the user to:
     Upload the generated operating points to the PLC.
     Retrieve and save measurement data.
 
-2. uploadCSV.py
+### 2. uploadCSV.py
 
 Uploads a list of operating points to the PLC (SPS) via OPC-UA for test execution on the test bench.
 
-3. arbeitspunkte.py
+### 3. arbeitspunkte.py
 
 Generates a list of operating points for characteristic curve testing, which can be viewed and saved as a CSV.
 
-4. Messdaten_auslesen.py
+### 4. Messdaten_auslesen.py
 
 Reads and saves measurement data logged by the PLC after testing is complete.
