@@ -10,9 +10,10 @@ jobs:
         os: [ubuntu-latest, windows-latest, macos-latest]
 
     steps:
-    - uses: actions/checkout@v3  # Aktualisiert auf v3
+    - uses: actions/checkout@v3
+
     - name: Set up Python
-      uses: actions/setup-python@v4  # Aktualisiert auf v4
+      uses: actions/setup-python@v4
       with:
         python-version: '3.x'
 
@@ -24,3 +25,9 @@ jobs:
     - name: Build executable
       run: |
         pyinstaller --onefile main.py
+
+    - name: Upload executable as artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: built-executable
+        path: ./dist/  # Dies ist der Ordner, in dem PyInstaller die Executable speichert
