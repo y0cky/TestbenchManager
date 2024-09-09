@@ -1,5 +1,8 @@
 # TestbenchManager
 
+
+![Screenshot 2024-09-09 235914](https://github.com/user-attachments/assets/653d1c31-189c-4c32-b233-06419354247f)
+
 This project provides a graphical user interface (GUI) for managing the operation of a test bench used for electrical machine testing. It allows the user to create and upload operating points, perform tests, and save measurement data.
 
 ## Table of Contents
