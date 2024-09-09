@@ -1,6 +1,8 @@
 name: Build Executables
 
-on: [push]
+# Manueller Trigger
+on: 
+  workflow_dispatch:
 
 jobs:
   build:
@@ -10,24 +12,29 @@ jobs:
         os: [ubuntu-latest, windows-latest, macos-latest]
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v3  # Node.js 20 wird zukünftig verwendet
+
+    # Tkinter-Abhängigkeiten für Linux installieren
+    - name: Install Tkinter dependencies (Linux only)
+      if: runner.os == 'Linux'
+      run: sudo apt-get install python3-tk -y
 
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
         python-version: '3.x'
 
-    - name: Install dependencies
+    - name: Install Python dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install pyinstaller
+        pip install pyinstaller pandas numpy opcua
 
     - name: Build executable
       run: |
-        pyinstaller --onefile main.py
+        pyinstaller --onefile --windowed main.py
 
     - name: Upload executable as artifact
       uses: actions/upload-artifact@v3
       with:
-        name: built-executable
-        path: ./dist/  # Dies ist der Ordner, in dem PyInstaller die Executable speichert
+        name: built-executable-${{ matrix.os }}  # Dynamischer Name basierend auf dem OS
+        path: ./dist/
