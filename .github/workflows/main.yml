@@ -1,6 +1,8 @@
 name: Build Executables
 
-on: [push]
+# Manueller Trigger
+on: 
+  workflow_dispatch:
 
 jobs:
   build:
