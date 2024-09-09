@@ -54,6 +54,14 @@ Install required Python libraries:
 bash
 
     pip install pandas
+    
+### Option 2: Windows Executable
+
+Alternatively, you can download the pre-built Windows executable version of the application. This version does not require Python to be installed.
+
+1. Download the executable from [here](https://github.com/y0cky/TestbenchManager/releases/).
+
+2. Double-click the `main.exe` file to launch the application.
 
 ## Usage
 
