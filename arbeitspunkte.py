@@ -108,7 +108,9 @@ def save_csv():
 
 def save_list_as_csv():
     if df_global is not None:
-        sort_order = sort_order_var.get()
+        # Benutzer nach der Sortierreihenfolge fragen
+        sort_choice = messagebox.askquestion("Sortierreihenfolge", "Möchten Sie nach Drehmoment (Ja) oder Drehzahl (Nein) sortieren?")
+
         list_data = set()
         removed_duplicates_count = 0
 
@@ -123,7 +125,7 @@ def save_list_as_csv():
 
         list_df = pd.DataFrame(list(list_data), columns=["Drehmoment", "Drehzahl"])
 
-        if sort_order == "torque_first":
+        if sort_choice == "yes":
             list_df = list_df.sort_values(by=["Drehmoment", "Drehzahl"])
         else:
             list_df = list_df.sort_values(by=["Drehzahl", "Drehmoment"])
@@ -167,7 +169,6 @@ def on_closing():
 def main():
     global root, speed_start_var, speed_end_var, speed_step_var
     global torque_start_var, torque_end_var, torque_step_var, torque_limits_var
-    global sort_order_var
 
     root = tk.Tk()
     root.title("Arbeitspunkte Generator")
@@ -215,16 +216,16 @@ def main():
     save_button = tk.Button(frame, text="Tabelle als CSV speichern", command=save_csv)
     save_button.grid(row=12, column=0, columnspan=2, pady=5)
 
-    sort_order_var = tk.StringVar(value="torque_first")
-    tk.Label(frame, text="Sortierreihenfolge für CSV:", font=('Arial', 12, 'bold')).grid(row=13, column=0, columnspan=2, pady=10, sticky='w')
-    tk.Radiobutton(frame, text="Drehmoment > Drehzahl", variable=sort_order_var, value="torque_first").grid(row=14, column=0, columnspan=2, sticky='w')
-    tk.Radiobutton(frame, text="Drehzahl > Drehmoment", variable=sort_order_var, value="speed_first").grid(row=15, column=0, columnspan=2, sticky='w')
-
     save_list_button = tk.Button(frame, text="Liste als CSV speichern", command=save_list_as_csv)
-    save_list_button.grid(row=16, column=0, columnspan=2, pady=5)
+    save_list_button.grid(row=13, column=0, columnspan=2, pady=5)
 
     root.protocol("WM_DELETE_WINDOW", on_closing)
     root.mainloop()
+
+# Wenn das Skript direkt ausgeführt wird, starte das Hauptprogramm
+if __name__ == "__main__":
+    main()
+
 
 # Wenn das Skript direkt ausgeführt wird, starte das Hauptprogramm
 if __name__ == "__main__":
