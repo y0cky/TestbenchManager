@@ -42,7 +42,7 @@ jobs:
     - name: Build executable for macOS
       if: runner.os == 'macOS'
       run: |
-        pyinstaller --onefile --windowed --target-arch universal2 main.py
+        pyinstaller --onefile --windowed main.py
         mv ./dist/main ./dist/TestbenchManager_macos
 
     - name: Build executable for Linux
