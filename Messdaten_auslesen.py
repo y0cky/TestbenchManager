@@ -2,6 +2,10 @@ import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 from opcua import Client, ua
 import pandas as pd
+import os
+
+# Datei für die Variablen (Registernamen)
+VARIABLES_CSV = 'variables.csv'
 
 class OPCUAGUI:
     def __init__(self, root):
@@ -9,6 +13,7 @@ class OPCUAGUI:
         self.root.title("OPC-UA Data Viewer")
         self.client = None
         self.data = None
+        self.variables = self.load_variables_from_csv()  # Lade die Registernamen aus der CSV-Datei
         
         # Setup GUI components
         self.setup_gui()
@@ -30,6 +35,10 @@ class OPCUAGUI:
         self.save_button = tk.Button(button_frame, text="Save to CSV", command=self.save_to_csv, state=tk.DISABLED)
         self.save_button.pack(side=tk.LEFT, padx=5)
 
+        # Save Variables Button
+        self.save_variables_button = tk.Button(button_frame, text="Save Variables", command=self.save_variables_to_csv)
+        self.save_variables_button.pack(side=tk.LEFT, padx=5)
+
         # Table
         self.tree = ttk.Treeview(self.root, columns=[], show='headings')
         self.tree.grid(row=1, column=0, sticky='nsew')
@@ -43,10 +52,33 @@ class OPCUAGUI:
         self.hsb.grid(row=2, column=0, sticky='ew')
         self.tree.configure(xscrollcommand=self.hsb.set)
 
-        # Configure row and column weights
-        self.root.columnconfigure(0, weight=1)
-        self.root.rowconfigure(1, weight=1)
-
+    def load_variables_from_csv(self):
+        """Lädt die Variablen aus einer CSV-Datei oder verwendet die Standardwerte."""
+        default_variables = [
+            "index", "Messprogramm", "n_soll", "n", "M_soll", "M", "Strom_Effektivwert_soll", "I",
+            "Stromwinkel_soll", "phi", "id_soll", "id", "iq_soll", "iq", "U", "Pmech", "Pauf",
+            "eta", "Temperatur", "I_R_mess", "U_R_mess", "R"
+        ]
+        
+        if os.path.exists(VARIABLES_CSV):
+            try:
+                df = pd.read_csv(VARIABLES_CSV)
+                return df['variables'].tolist()
+            except pd.errors.EmptyDataError:
+                pass
+        # Standard-Variablen, falls die Datei nicht existiert oder leer ist
+        return default_variables
+    
+    def save_variables_to_csv(self):
+        """Speichert die Variablen in eine CSV-Datei."""
+        df = pd.DataFrame(self.variables, columns=['variables'])
+        file_path = filedialog.asksaveasfilename(defaultextension=".csv",
+                                                 filetypes=[("CSV files", "*.csv"), ("All files", "*.*")],
+                                                 title="Speichere Variablen als CSV")
+        if file_path:
+            df.to_csv(file_path, index=False)
+            messagebox.showinfo("Success", "Variables successfully saved to CSV.")
+    
     def fetch_data(self):
         try:
             # OPC-UA Client Setup
@@ -55,23 +87,8 @@ class OPCUAGUI:
             self.client.connect()
             print("Connected to OPC-UA server")
             
-            # Variables to fetch
-            variables = [
-                "index",
-                "n",
-                "M",
-                "Pmech",
-                "I",
-                "U",
-                "Pauf",
-                "eta",
-                "Temperatur",
-                "I_R_mess",
-                "U_R_mess"
-            ]
-            
-            # Fetch Data
-            self.data = self.fetch_data_for_variables(variables)
+            # Fetch Data for loaded variables
+            self.data = self.fetch_data_for_variables(self.variables)
             
             # Display Data
             self.display_data()
