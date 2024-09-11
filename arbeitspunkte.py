@@ -131,6 +131,7 @@ def save_list_as_csv():
             list_df = list_df.sort_values(by=["Drehzahl", "Drehmoment"])
 
         list_df.reset_index(drop=True, inplace=True)
+        list_df.index = list_df.index + 1  # Index auf 1 basieren
         list_df.index.name = 'Index'
 
         file_path = filedialog.asksaveasfilename(defaultextension=".csv", filetypes=[("CSV files", "*.csv")], title="Liste speichern")
@@ -138,6 +139,7 @@ def save_list_as_csv():
             list_df.to_csv(file_path, index=True)
             messagebox.showinfo("Info", f"CSV-Datei gespeichert. {removed_duplicates_count} doppelte Arbeitspunkte entfernt.")
             show_saved_list(file_path)
+
 
 def show_saved_list(file_path):
     list_window = tk.Toplevel(root)
